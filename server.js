@@ -71,6 +71,13 @@ app.get('/images/:id/file', function(req, res) {
 			var url = image.image_url;
 			console.log(url);
 			request.get({url, encoding: null}, function (_, _, body) {
+				console.log('Found image of ' + body.byteLength + ' bytes');
+
+				if (!body || body.byteLength < 500000) {
+					console.log('Invalid image.');
+					return res.status(500).send('Image fetch failed');
+				}
+				
 
 				var func = null;
 				if (size === 'thumbnail') {
@@ -85,6 +92,8 @@ app.get('/images/:id/file', function(req, res) {
 				}
 
 				func.toBuffer((err, buffer, info) => {
+					console.log('Resized');
+					console.log(info);
 					if (err) {
 						console.log(err);
 						return res.status(500).send('Resize failed.');

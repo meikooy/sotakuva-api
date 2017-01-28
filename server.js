@@ -138,8 +138,8 @@ app.get('/images/:id/file', function(req, res) {
 				    lossy: true,
 				    resize: resizes[size],
 				    s3_store: {
-				        key: process.env.S3_KEY,
-				        secret: process.env.S3_SECRET,
+				        key: process.env.AWS_ACCESS_KEY_ID,
+				        secret: process.env.AWS_SECRET_ACCESS_KEY,
 				        bucket: process.env.S3_BUCKET,
 				        region: process.env.S3_REGION,
 				        path: `images/${id}_${size}`

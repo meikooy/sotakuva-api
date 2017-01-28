@@ -56,8 +56,6 @@ app.get('/images/:id/file', function(req, res) {
 			// Check if size exists
 			if (!image[sizeKey]) {
 
-				console.log('pass to kraken');
-
 				// 
 				// Pass to kraken
 				// 
@@ -73,8 +71,15 @@ app.get('/images/:id/file', function(req, res) {
 	    			}
 				};
 
+				// If we are fetching thumbnail and we already have the 
+				// large file use it instead to save bandwith
+				var url = image.image_url;
+				if (size === 'thumbnail' && image['s3_large_url']) {
+					url = image['s3_large_url'];
+				}
+
 				const params = {
-				    url: image.image_url,
+				    url: url,
 				    lossy: true,
 				    resize: resizes[size],
 				    s3_store: {
@@ -87,9 +92,6 @@ app.get('/images/:id/file', function(req, res) {
 				    wait: true
 				};
 				kraken.url(params, function(status) {
-					console.log('kraken status');
-					console.log(status);
-
 				    if (status.success) {
 				        
 				        // Save the optimized url

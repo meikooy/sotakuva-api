@@ -9,6 +9,10 @@ const sharp = require('sharp');
 const request = require('request');
 const AWS = require('aws-sdk');
 
+const algoliasearch = require('algoliasearch');
+const client = algoliasearch(process.env.ALGOLIA_APPLICATION_ID, process.env.ALGOLIA_APIKEY);
+const imagesIndex = client.initIndex(process.env.ALGOLIA_INDEX_IMAGES);
+
 const s3 = new AWS.S3();
 
 // Initialize Kraken
@@ -76,8 +80,30 @@ app.get('/images/:id/file', function(req, res) {
 				if (!body || body.byteLength < 500000) {
 					console.log('Invalid image.');
 
-					console.log('Found placeholder image returning smaller one: ' + image.thumbnail_url);
-					return res.redirect(image.thumbnail_url);
+					//
+					// If the sakuva service failed to provide image for use
+					// we should delete the image from algolia
+					// 
+					
+					console.log('Saving image');
+					image.indexed_to_algolia = false;
+					image.save(
+						image => {
+							console.log('Deleting image from algolia');
+							imagesIndex.deleteObject(image._id, function(err) {
+								console.log(err);
+								res.status(500).send('Image fetch failed');
+							});
+
+							res.status(500).send('Image fetch failed');
+						},
+						err => {
+							console.log(err);
+							res.status(500).send('Image fetch failed');
+						}
+					);
+					
+					return;
 				}
 				
 

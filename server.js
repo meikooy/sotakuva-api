@@ -89,7 +89,7 @@ app.get('/images/:id/file', function(req, res) {
 					image.indexed_to_algolia = false;
 					image.save(
 						ok => {
-							console.log('Deleting image from algolia');
+							console.log('Deleting image from algolia: ' + image._id);
 							imagesIndex.deleteObject(image._id, function(err) {
 								console.log(err);
 								res.status(500).send('Image fetch failed');

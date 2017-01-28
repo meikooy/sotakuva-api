@@ -76,7 +76,7 @@ app.get('/images/:id/file', function(req, res) {
 					var func = null;
 					if (size === 'thumbnail') {
 						func = sharp(body)
-							.resize(600, 600)
+							.resize(null, 700)
 							.max()
 					}
 					else if(size === 'large') {

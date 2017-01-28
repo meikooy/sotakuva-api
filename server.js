@@ -76,7 +76,7 @@ app.get('/images/:id/file', function(req, res) {
 				if (!body || body.byteLength < 500000) {
 					console.log('Invalid image.');
 
-					console.log('Found placeholder image returning smaller one.');
+					console.log('Found placeholder image returning smaller one: ' + image.thumbnail_url);
 					return res.redirect(image.thumbnail_url);
 				}
 				

@@ -11,10 +11,13 @@ const Image = mongoose.model('Image', {
     'thumbnail_url':    String,
     'image_url':        String,
     'era':              Number,
+    'preview_text':     String,
     'era_title':        String,
     'date':             Date,
     'year':             Number,
     'month':            Number,
     'day':              Number,
+    's3_thumbnail_url': String,
+    's3_large_url':     String
 });
 module.exports = Image;

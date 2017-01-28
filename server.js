@@ -5,7 +5,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Image = require('./image');
 const Kraken = require('kraken');
+const sharp = require('sharp');
+const request = require('request');
+const AWS = require('aws-sdk');
 
+const s3 = new AWS.S3();
 
 // Initialize Kraken
 const kraken = new Kraken({
@@ -51,25 +55,14 @@ app.get('/images/:id/file', function(req, res) {
 	Image.findById(id).then(
 		image => {
 
+			//
+			// Resize
+			// 
+
 			const sizeKey = `s3_${size}_url`;
 
 			// Check if size exists
 			if (!image[sizeKey]) {
-
-				// 
-				// Pass to kraken
-				// 
-				
-				const resizes = {
-					thumbnail: {
-	        			height: 600,
-	        			strategy: 'portrait'
-	    			},
-	    			large: {
-	        			width: 1800,
-	        			strategy: 'landscape'
-	    			}
-				};
 
 				// If we are fetching thumbnail and we already have the 
 				// large file use it instead to save bandwith
@@ -78,6 +71,68 @@ app.get('/images/:id/file', function(req, res) {
 					url = image['s3_large_url'];
 				}
 
+				request.get({url, encoding: null}, function (_, _, body) {
+
+					var func = null;
+					if (size === 'thumbnail') {
+						func = sharp(body)
+							.resize(600, 600)
+							.max()
+					}
+					else if(size === 'large') {
+						func = sharp(body)
+							.resize(1800, null)
+							.max()
+					}
+
+					func.toBuffer((err, buffer, info) => {
+						if (err) {
+							console.log(err);
+							return res.status(500).send('Resize failed.');
+						}
+
+						const path = `images/${id}_${size}.jpg`;
+						s3.putObject({
+							Bucket: process.env.S3_BUCKET,
+							Key: path,
+							ACL: 'public-read',
+							ContentDisposition: 'inline',
+							ContentType: 'image/jpg',
+							Body: buffer
+						}, (err, data) => {
+							if (err) {
+								console.log(err);
+								return res.status(500).send('S3 upload failed.');
+							}
+
+							
+							// Save the optimized url
+					        image[sizeKey] = 'http://images.rintamalla.fi/' + path;
+					        console.log(image);
+					        image.save().then(
+					        	image => {
+					        		
+					        		// Redirect to optimized url
+					        		res.redirect(301, image[sizeKey]);
+
+					        	}, error => {
+						        	console.log(error);
+						        	res.status(500).send('Image saving failed');
+					        	}
+					        );
+						});
+					});
+				});
+
+				
+				return;
+
+
+
+				// 
+				// Pass to kraken. Disabled for now.
+				// 
+				
 				const params = {
 				    url: url,
 				    lossy: true,

@@ -67,9 +67,6 @@ app.get('/images/:id/file', function(req, res) {
 				// If we are fetching thumbnail and we already have the 
 				// large file use it instead to save bandwith
 				var url = image.image_url;
-				if (size === 'thumbnail' && image['s3_large_url']) {
-					url = image['s3_large_url'];
-				}
 
 				request.get({url, encoding: null}, function (_, _, body) {
 

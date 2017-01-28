@@ -104,7 +104,7 @@ app.get('/images/:id/file', function(req, res) {
 
 							
 							// Save the optimized url
-					        image[sizeKey] = 'http://images.rintamalla.fi/' + path;
+					        image[sizeKey] = 'https://images.rintamalla.fi/' + path;
 					        console.log(image);
 					        image.save().then(
 					        	image => {
